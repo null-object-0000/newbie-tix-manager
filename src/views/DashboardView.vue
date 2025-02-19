@@ -67,7 +67,13 @@ const totalTickets = ref(0)
 const soldTickets = ref(0)
 
 // 近期演出列表
-const recentShows = ref([])
+const recentShows = ref<Array<{
+    id: string
+    name: string
+    startTime: string
+    venue: string
+    status: string
+}>>([]);
 
 // 格式化日期时间
 const formatDateTime = (dateTime: string) => {

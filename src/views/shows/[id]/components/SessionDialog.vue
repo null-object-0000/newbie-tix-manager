@@ -6,8 +6,7 @@
             </a-form-item>
 
             <a-form-item field="timeRange" label="时间段" :rules="[{ required: true, message: '请选择时间段' }]">
-                <a-range-picker v-model="formData.timeRange" show-time format="YYYY-MM-DD HH:mm:ss" placeholder="['开始时间', '结束时间']"
-                    :readonly="isView" @change="handleTimeRangeChange" />
+                <a-range-picker v-model="formData.timeRange" show-time format="YYYY-MM-DD HH:mm:ss" :placeholder="['开始时间', '结束时间']" :readonly="isView" @change="handleTimeRangeChange" />
             </a-form-item>
         </a-form>
     </a-modal>
@@ -47,7 +46,7 @@ const formData = ref<Props['sessionData'] & { timeRange: [Date | undefined, Date
         : [undefined, undefined]
 });
 
-const handleTimeRangeChange = (dates: [Date | undefined, Date | undefined]) => {
+const handleTimeRangeChange = (value: (string | number | Date)[] | undefined, dates: (Date | undefined)[] | undefined) => {
     if (dates && dates[0] && dates[1]) {
         formData.value.startTime = dates[0].toISOString();
         formData.value.endTime = dates[1].toISOString();
