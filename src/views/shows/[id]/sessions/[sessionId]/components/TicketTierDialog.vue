@@ -1,6 +1,6 @@
 <template>
     <a-modal :visible="visible" :title="title" @update:visible="(val) => emit('update:visible', val)" @ok="handleSubmit" @cancel="handleCancel">
-        <a-form ref="formRef" :model="formData" :rules="rules">
+        <a-form ref="formRef" :model="formData">
             <a-form-item field="name" label="票档名称" :rules="[{ required: true, message: '请输入票档名称' }]">
                 <a-input v-model="formData.name" placeholder="请输入票档名称" :disabled="mode === 'view'" />
             </a-form-item>

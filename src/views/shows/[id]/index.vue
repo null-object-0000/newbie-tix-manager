@@ -44,7 +44,8 @@
                         <template #cell="{ record }">
                             <a-space>
                                 <a-button type="text" size="small" @click="handleEditSession(record)">编辑</a-button>
-                                <a-button type="text" size="small" @click="router.push(`/shows/${id}/sessions/${record.id}`)">票档管理</a-button>
+                                <a-button type="text" size="small"
+                                    @click="router.push(`/shows/${id}/sessions/${record.id}`)">票档管理</a-button>
                             </a-space>
                         </template>
                     </a-table-column>
@@ -54,9 +55,6 @@
 
         <session-dialog v-model:visible="dialogVisible" :mode="dialogMode" :session-data="currentSession"
             @submit="handleDialogSubmit" />
-
-        <ticket-tier-dialog v-model:visible="ticketTierDialogVisible" :mode="ticketTierDialogMode"
-            :ticket-tier-data="currentTicketTier" @submit="handleTicketTierSubmit" />
     </div>
 </template>
 
@@ -65,9 +63,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import type { TableData } from '@arco-design/web-vue/es/table/interface'
+import type { Session } from '@/types/session'
 import SessionDialog from './components/SessionDialog.vue'
-import TicketTierDialog from './components/TicketTierDialog.vue'
-import type { TicketTier } from '@/types/ticketTier'
 
 interface Show {
     id: string
@@ -82,14 +79,6 @@ interface Show {
     contact: string
 }
 
-interface Session extends TableData {
-    id: string
-    showId: string
-    name: string
-    startTime: string
-    endTime: string
-}
-
 const router = useRouter()
 const route = useRoute()
 const id = route.params.id as string
@@ -97,10 +86,6 @@ const id = route.params.id as string
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'edit' | 'view'>('create')
 const currentSession = ref<Partial<Session>>({})
-const ticketTiers = ref<TicketTier[]>([])
-const ticketTierDialogVisible = ref(false)
-const ticketTierDialogMode = ref<'create' | 'edit' | 'view'>('create')
-const currentTicketTier = ref<Partial<TicketTier>>({})
 
 // 处理新增场次
 const handleCreateSession = () => {
@@ -117,7 +102,7 @@ const handleEditSession = (session: Session) => {
 }
 
 // 处理弹窗提交
-const handleDialogSubmit = async (sessionData: Partial<Session>) => {
+const handleDialogSubmit = async (sessionData: Partial<Session> | undefined) => {
     try {
         if (dialogMode.value === 'create') {
             // TODO: 调用创建场次API
@@ -199,7 +184,9 @@ const fetchSessions = async () => {
             {
                 id: '1',
                 showId: id,
+                name: '场次1',
                 startTime: '2024-02-10 19:30:00',
+                endTime: '2024-02-10 21:30:00',
                 status: 'not_started'
             }
         ]
@@ -223,56 +210,6 @@ const getStatusText = (status: Show['status']) => {
         ended: '已结束'
     }
     return textMap[status]
-}
-
-// 获取场次状态颜色
-const getSessionStatusColor = (status: Session['status']) => {
-    const colorMap = {
-        not_started: 'blue',
-        on_sale: 'green',
-        sold_out: 'red',
-        ended: 'gray'
-    }
-    return colorMap[status]
-}
-
-// 获取场次状态文本
-const getSessionStatusText = (status: Session['status']) => {
-    const textMap = {
-        not_started: '未开始',
-        on_sale: '售票中',
-        sold_out: '已售罄',
-        ended: '已结束'
-    }
-    return textMap[status]
-}
-
-// 处理票档管理
-const handleTicketTiers = async (session: Session) => {
-    try {
-        // TODO: 调用后端 API 获取票档列表
-        ticketTiers.value = []
-        // 显示票档列表弹窗
-        ticketTierDialogMode.value = 'create'
-        currentTicketTier.value = { sessionId: session.id }
-        ticketTierDialogVisible.value = true
-    } catch (error) {
-        console.error(error)
-        Message.error('获取票档列表失败')
-    }
-}
-
-// 处理票档提交
-const handleTicketTierSubmit = async (data: Partial<TicketTier>) => {
-    try {
-        // TODO: 调用后端 API 保存票档数据
-        Message.success('保存成功')
-        ticketTierDialogVisible.value = false
-        // 重新加载票档列表
-        await handleTicketTiers({ id: data.sessionId } as Session)
-    } catch (error) {
-        Message.error('保存失败')
-    }
 }
 
 onMounted(() => {

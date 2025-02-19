@@ -5,7 +5,5 @@ export interface TicketTier {
   price: number
   stock: number
   sold: number
-  totalSeats: number
-  availableSeats: number
   status: 'available' | 'sold_out'
 }

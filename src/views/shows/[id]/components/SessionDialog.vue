@@ -15,16 +15,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { FormInstance } from '@arco-design/web-vue';
+import type { Session } from '@/types/session';
 
 interface Props {
     visible: boolean;
     mode: 'create' | 'edit' | 'view';
-    sessionData?: Partial<{
-        id: string;
-        name: string;
-        startTime: string;
-        endTime: string;
-    }>;
+    sessionData?: Partial<Session>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,17 +35,17 @@ const emit = defineEmits<{
 }>();
 
 const formRef = ref<FormInstance>();
-const formData = ref<Props['sessionData'] & { timeRange: [Date | undefined, Date | undefined] }>({ 
+const formData = ref<Props['sessionData'] & { timeRange: (string | number | Date)[] }>({ 
     ...props.sessionData,
     timeRange: props.sessionData?.startTime && props.sessionData?.endTime
         ? [new Date(props.sessionData.startTime), new Date(props.sessionData.endTime)]
-        : [undefined, undefined]
+        : []
 });
 
-const handleTimeRangeChange = (value: (string | number | Date)[] | undefined, dates: (Date | undefined)[] | undefined) => {
-    if (dates && dates[0] && dates[1]) {
-        formData.value.startTime = dates[0].toISOString();
-        formData.value.endTime = dates[1].toISOString();
+const handleTimeRangeChange = (value: (Date | string | number | undefined)[] | undefined, date: (Date | undefined)[] | undefined, dateStrings: (string | undefined)[] | undefined) => {
+    if (date && date[0] && date[1]) {
+        formData.value.startTime = date[0].toISOString();
+        formData.value.endTime = date[1].toISOString();
     }
 };
 

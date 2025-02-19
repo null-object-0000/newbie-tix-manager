@@ -124,7 +124,8 @@ const fetchTicketTiers = async () => {
                 name: 'VIP票',
                 price: 580,
                 stock: 100,
-                sold: 50
+                sold: 50,
+                status: 'available'
             }
         ]
     } catch (error) {
