@@ -32,6 +32,18 @@ const router = createRouter({
       component: () => import('@/views/PerformanceSessions.vue'),
       meta: { activeMenu: 'performances' }
     },
+    {
+      path: '/performances/:performanceId/sessions/:sessionId/tickets',
+      name: 'performance-tickets',
+      component: () => import('@/views/PerformanceTickets.vue'),
+      meta: { activeMenu: 'performances' }
+    },
+    {
+      path: '/orders',
+      name: 'orders',
+      component: () => import('@/views/Orders.vue'),
+      meta: { activeMenu: 'orders' }
+    },
   ],
 })
 

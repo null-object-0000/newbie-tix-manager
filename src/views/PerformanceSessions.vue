@@ -1,10 +1,10 @@
 <template>
     <div class="performance-sessions">
-        <a-typography-title :heading="3" style="margin-bottom: 24px">场次管理</a-typography-title>
+        <a-typography-title :heading="3" style="margin-top: 0px; margin-bottom: 24px">场次管理</a-typography-title>
 
         <!-- 演出基本信息 -->
         <a-card class="performance-info" style="margin-bottom: 16px">
-            <template #title>演出基本信息</template>
+            <template #title>基本信息</template>
             <div class="performance-info-content">
                 <div class="performance-cover">
                     <img :src="performance?.coverUrl" alt="演出封面" />
@@ -32,16 +32,21 @@
                     <a-table-column title="场次ID" data-index="id" :width="100" />
                     <a-table-column title="场次标题" data-index="title" :width="150" />
                     <a-table-column title="售卖时间" :width="300">
-                        <template #cell="{ record }">
-                            {{ formatDateTime(record.startSaleTime) }} - {{ formatDateTime(record.endSaleTime) }}
+                        <template #cell="{ record }: { record: PerformanceSession }">
+                            {{ formatDateTime(record.startSaleTime) }} - <br> {{ formatDateTime(record.endSaleTime) }}
                         </template>
                     </a-table-column>
-                    <a-table-column title="演出时间" :width="300">
-                        <template #cell="{ record }">
-                            {{ formatDateTime(record.startShowTime) }} - {{ formatDateTime(record.endShowTime) }}
+                    <a-table-column title="演出时间" :width="250">
+                        <template #cell="{ record }: { record: PerformanceSession }">
+                            {{ formatDateTime(record.startShowTime) }} - <br> {{ formatDateTime(record.endShowTime) }}
                         </template>
                     </a-table-column>
-                    <a-table-column title="状态" data-index="status" :width="120">
+                    <a-table-column title="总票数" :width="120">
+                        <template #cell="{ record }: { record: PerformanceSession }">
+                            {{ getPerformanceTickets(record.performanceId, record.id).reduce((sum, ticket) => sum + ticket.totalQuantity, 0) }}
+                        </template>
+                    </a-table-column>
+                    <a-table-column title="状态" data-index="status" :width="100">
                         <template #cell="{ record }: { record: PerformanceSession }">
                             <a-tag
                                 :color="{ 'on_sale': 'green', 'coming_soon': 'blue', 'sold_out': 'red' }[record.status]">
@@ -50,10 +55,14 @@
                         </template>
                     </a-table-column>
                     <a-table-column title="操作" align="center" :width="150">
-                        <template #cell="{ record }">
+                        <template #cell="{ record }: { record: PerformanceSession }">
                             <a-space>
                                 <a-button type="text" size="small" @click="handleEditSession(record)">
                                     编辑
+                                </a-button>
+                                <a-button type="text" size="small"
+                                    @click="router.push(`/performances/${record.performanceId}/sessions/${record.id}/tickets`)">
+                                    票档管理
                                 </a-button>
                                 <a-button type="text" status="danger" size="small" @click="handleDeleteSession(record)">
                                     删除
@@ -91,7 +100,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
 import type { Performance, PerformanceSession, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_MAP, PERFORMANCE_STATUS_OPTIONS } from '@/types/constants'
-import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession } from '@/services/localStorage'
+import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession, getPerformanceTickets } from '@/services/localStorage'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,6 +126,7 @@ const sessionFormRef = ref()
 const currentSession = ref<PerformanceSession | null>(null)
 const sessionForm = reactive({
     title: '',
+    performanceId: Number(route.params.id),
     saleTimeRange: [] as string[],
     showTimeRange: [] as string[],
     status: 'coming_soon' as PerformanceStatus
@@ -199,6 +209,7 @@ const handleSessionSubmit = async (done: (closed: boolean) => void) => {
 
         const performanceId = Number(route.params.id)
         const sessionData = {
+            performanceId: performanceId,
             title: sessionForm.title,
             startSaleTime: sessionForm.saleTimeRange[0],
             endSaleTime: sessionForm.saleTimeRange[1],
@@ -265,7 +276,8 @@ const formatDateTime = (datetime: string) => {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit'
     }).format(new Date(datetime))
 }
 
@@ -311,7 +323,6 @@ const getStatusColor = (status: string) => {
 .performance-info-content {
     display: flex;
     gap: 24px;
-    padding: 8px;
     align-items: flex-start;
 }
 

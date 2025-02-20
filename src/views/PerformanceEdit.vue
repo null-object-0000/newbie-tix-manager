@@ -1,6 +1,6 @@
 <template>
     <div class="performance-edit">
-        <a-typography-title :heading="3" style="margin-bottom: 24px">
+        <a-typography-title :heading="3" style="margin-top: 0px; margin-bottom: 24px">
             {{ route.params.id ? '编辑演出' : '新增演出' }}
         </a-typography-title>
 
@@ -347,8 +347,12 @@ const handleSubmit = async () => {
         }
 
         // 检查观演须知是否为空
-        if (!formData.notices || formData.notices.length === 0 || formData.notices.some(notice => !notice.trim())) {
+        if (!formData.notices || formData.notices.length === 0) {
             Message.error('请至少添加一条有效的观演须知')
+            return
+        }
+        if (formData.notices.some(notice => !notice.trim())) {
+            Message.error('存在空的观演须知')
             return
         }
 

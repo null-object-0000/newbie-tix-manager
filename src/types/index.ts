@@ -25,6 +25,8 @@ export interface Performance {
 export interface PerformanceSession {
     /** 场次ID，唯一标识 */
     id: number
+    /** 关联的演出ID */
+    performanceId: number
     /** 场次标题（可选，为空时使用场次演出开始时间作为标题） */
     title?: string
     /** 场次售卖开始时间 */
@@ -43,12 +45,16 @@ export interface PerformanceSession {
 export interface PerformanceTicket {
     /** 票档ID，唯一标识 */
     id: number
+    /** 关联的演出ID */
+    performanceId: number
+    /** 关联的场次ID */
+    sessionId: number
     /** 票档标题 */
     title: string
     /** 票价 */
     price: number
     /** 总库存数量 */
-    totalStock: number
+    totalQuantity: number
 }
 
 /** 订单状态类型 - 表示订单的处理状态 */

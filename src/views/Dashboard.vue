@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard">
-        <a-typography-title :heading="3" style="margin-bottom: 24px">仪表盘</a-typography-title>
+        <a-typography-title :heading="3" style="margin-top: 0px; margin-bottom: 24px">仪表盘</a-typography-title>
 
         <a-row :gutter="16" style="margin-bottom: 16px">
             <!-- 演出统计 -->
@@ -80,12 +80,6 @@
                         <icon-clock-circle />
                     </template>
                     待处理订单
-                </a-button>
-                <a-button @click="router.push('/settings')">
-                    <template #icon>
-                        <icon-settings />
-                    </template>
-                    系统设置
                 </a-button>
             </a-space>
         </a-card>

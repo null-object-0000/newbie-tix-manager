@@ -1,6 +1,6 @@
 <template>
     <div class="performances">
-        <a-typography-title :heading="3" style="margin-bottom: 24px">演出管理</a-typography-title>
+        <a-typography-title :heading="3" style="margin-top: 0px; margin-bottom: 24px">演出管理</a-typography-title>
 
         <!-- 筛选栏 -->
         <a-card style="margin-bottom: 16px">
@@ -34,19 +34,19 @@
                 </a-space>
             </template>
             <a-table :columns="columns" :data="tableData" :pagination="{ pageSize: 10 }">
+                <template #totalTickets="{ record }: { record: Performance }">
+                    {{ calculateTotalTickets(record.id) }}
+                </template>
                 <template #status="{ record }: { record: Performance }">
                     <a-tag :color="{ 'on_sale': 'green', 'coming_soon': 'blue', 'sold_out': 'red' }[record.status]">
                         {{ statusOptions.find(option => option.value === record.status)?.label }}
                     </a-tag>
                 </template>
                 <template #actions="{ record }: { record: Performance }">
-                    <a-space>
-                        <a-button type="text" size="small"
-                            @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
-                        <a-button type="text" size="small"
-                            @click="router.push(`/performances/${record.id}/sessions`)">场次管理</a-button>
-                        <a-button type="text" size="small" status="danger">下架</a-button>
-                    </a-space>
+                    <a-button type="text" size="small"
+                        @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
+                    <a-button type="text" size="small"
+                        @click="router.push(`/performances/${record.id}/sessions`)">场次管理</a-button>
                 </template>
             </a-table>
         </a-card>
@@ -58,7 +58,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Performance, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_FILTER_OPTIONS } from '@/types/constants'
-import { filterPerformances } from '@/services/localStorage'
+import { filterPerformances, getPerformanceSessions, getPerformanceTickets } from '@/services/localStorage'
 
 const router = useRouter()
 
@@ -72,10 +72,29 @@ const filterForm = reactive({
     status: '' as PerformanceStatus | ''
 })
 
+// 计算演出总票数
+const calculateTotalTickets = (performanceId: number) => {
+    const sessions = getPerformanceSessions(performanceId)
+    let total = 0
+    sessions.forEach(session => {
+        const tickets = getPerformanceTickets(performanceId, session.id)
+        tickets.forEach(ticket => {
+            total += ticket.totalQuantity || 0
+        })
+    })
+    return total
+}
+
 // 表格列定义
 const columns = [
+    { title: '演出ID', dataIndex: 'id', width: 100 },
     { title: '演出标题', dataIndex: 'title' },
     { title: '场馆', dataIndex: 'venue' },
+    {
+        title: '总票数',
+        width: 100,
+        slotName: 'totalTickets'
+    },
     {
         title: '状态',
         dataIndex: 'status',
