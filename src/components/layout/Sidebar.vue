@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { IconDashboard, IconCalendar, IconOrderedList, IconSettings } from '@arco-design/web-vue/es/icon';
 
 const router = useRouter()
-const activeMenu = ref('dashboard')
+const route = useRoute()
+const activeMenu = computed(() => route.meta.activeMenu as string || route.name as string)
 
 const menuItems = [
   { key: 'dashboard', label: '仪表盘', icon: IconDashboard, path: '/' },

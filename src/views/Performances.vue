@@ -1,57 +1,3 @@
-<script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import type { Performance, PerformanceStatus } from '@/types'
-import { PERFORMANCE_STATUS_FILTER_OPTIONS } from '@/types/constants'
-
-const router = useRouter()
-
-// 表格数据
-const tableData = ref<Performance[]>([])
-
-// 筛选条件
-const filterForm = reactive({
-    title: '',
-    venue: '',
-    status: '' as PerformanceStatus | ''
-})
-
-// 表格列定义
-const columns = [
-    { title: '演出标题', dataIndex: 'title' },
-    { title: '场馆', dataIndex: 'venue' },
-    {
-        title: '状态',
-        dataIndex: 'status',
-        slotName: 'status'
-    },
-    { title: '演出时间', dataIndex: 'showTime' },
-    {
-        title: '票价',
-        slotName: 'price'
-    },
-    {
-        title: '操作',
-        slotName: 'actions'
-    }
-]
-
-// 状态选项
-const statusOptions = PERFORMANCE_STATUS_FILTER_OPTIONS
-
-// 搜索
-const handleSearch = () => {
-    // TODO: 实现搜索逻辑
-}
-
-// 重置
-const handleReset = () => {
-    filterForm.title = ''
-    filterForm.venue = ''
-    filterForm.status = ''
-}
-</script>
-
 <template>
     <div class="performances">
         <a-typography-title :heading="3" style="margin-bottom: 24px">演出管理</a-typography-title>
@@ -95,8 +41,10 @@ const handleReset = () => {
                 </template>
                 <template #actions="{ record }: { record: Performance }">
                     <a-space>
-                        <a-button type="text" size="small" @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
-                        <a-button type="text" size="small">场次管理</a-button>
+                        <a-button type="text" size="small"
+                            @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
+                        <a-button type="text" size="small"
+                            @click="router.push(`/performances/${record.id}/sessions`)">场次管理</a-button>
                         <a-button type="text" size="small" status="danger">下架</a-button>
                     </a-space>
                 </template>
@@ -104,6 +52,68 @@ const handleReset = () => {
         </a-card>
     </div>
 </template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import type { Performance, PerformanceStatus } from '@/types'
+import { PERFORMANCE_STATUS_FILTER_OPTIONS } from '@/types/constants'
+import { filterPerformances } from '@/services/localStorage'
+
+const router = useRouter()
+
+// 表格数据
+const tableData = ref<Performance[]>([])
+
+// 筛选条件
+const filterForm = reactive({
+    title: '',
+    venue: '',
+    status: '' as PerformanceStatus | ''
+})
+
+// 表格列定义
+const columns = [
+    { title: '演出标题', dataIndex: 'title' },
+    { title: '场馆', dataIndex: 'venue' },
+    {
+        title: '状态',
+        dataIndex: 'status',
+        slotName: 'status'
+    },
+    {
+        title: '操作',
+        slotName: 'actions'
+    }
+]
+
+// 状态选项
+const statusOptions = PERFORMANCE_STATUS_FILTER_OPTIONS
+
+// 加载数据
+const loadData = () => {
+    tableData.value = filterPerformances(filterForm)
+}
+
+// 搜索
+const handleSearch = () => {
+    loadData()
+}
+
+// 重置
+const handleReset = () => {
+    filterForm.title = ''
+    filterForm.venue = ''
+    filterForm.status = ''
+    loadData()
+}
+
+// 初始化加载数据
+onMounted(() => {
+    loadData()
+})
+</script>
+
 
 <style scoped>
 .performances {
