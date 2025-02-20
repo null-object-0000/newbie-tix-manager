@@ -6,38 +6,23 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      component: () => import('../views/DashboardView.vue'),
+      component: () => import('@/views/Dashboard.vue'),
     },
     {
-      path: '/shows',
-      name: 'shows',
-      component: () => import('../views/shows/index.vue'),
+      path: '/performances',
+      name: 'performances',
+      component: () => import('@/views/Performances.vue'),
     },
     {
-      path: '/shows/create',
-      name: 'shows-create',
-      component: () => import('../views/shows/create.vue'),
+      path: '/performances/create',
+      name: 'performance-create',
+      component: () => import('@/views/PerformanceEdit.vue'),
     },
     {
-      path: '/shows/:id',
-      name: 'shows-detail',
-      component: () => import('../views/shows/[id]/index.vue'),
+      path: '/performances/:id/edit',
+      name: 'performance-edit',
+      component: () => import('@/views/PerformanceEdit.vue'),
     },
-    {
-      path: '/shows/:id/edit',
-      name: 'shows-edit',
-      component: () => import('../views/shows/[id]/edit.vue'),
-    },
-    {
-      path: '/shows/:id/sessions/:sessionId',
-      name: 'shows-session-detail',
-      component: () => import('../views/shows/[id]/sessions/[sessionId]/index.vue'),
-    },
-    {
-      path: '/orders',
-      name: 'orders',
-      component: () => import('../views/orders/index.vue'),
-    }
   ],
 })
 
