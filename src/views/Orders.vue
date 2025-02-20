@@ -65,14 +65,6 @@
                     <a-button type="text" size="small" @click="handleViewOrder(record)">
                         查看
                     </a-button>
-                    <a-button v-if="record.status === 'pending'" type="text" size="small" status="success"
-                        @click="handlePayOrder(record)">
-                        支付
-                    </a-button>
-                    <a-button v-if="record.status === 'pending'" type="text" size="small" status="danger"
-                        @click="handleCancelOrder(record)">
-                        取消
-                    </a-button>
                 </a-space>
             </template>
         </a-table>
@@ -88,9 +80,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { Message, Modal } from '@arco-design/web-vue'
+import { Message, Modal, type DescData, type TableColumnData } from '@arco-design/web-vue'
 import type { Order } from '@/types'
-import { filterOrders, updateOrder, getPerformance, getPerformanceSession, getPerformanceTickets } from '@/services/localStorage'
+import { filterOrders, getPerformance, getPerformanceSession, getPerformanceTickets } from '@/services/localStorage'
 
 // 日期格式化函数
 const formatDateTime = (dateStr: string) => {
@@ -133,7 +125,7 @@ const columns = [
     { title: '下单时间', dataIndex: 'createTime', width: 180, render: (_: any, record: Order) => formatDateTime(record.createTime) },
     { title: '状态', slotName: 'status', width: 100 },
     { title: '操作', slotName: 'actions', width: 160 }
-]
+] as TableColumnData[]
 
 // 获取演出标题
 const getPerformanceTitle = (performanceId: number) => {
@@ -228,48 +220,13 @@ const orderInfo = computed(() => {
         { label: '数量', value: order.quantity },
         { label: '票面总价', value: `¥${order.totalAmount}` },
         { label: '实付金额', value: `¥${order.finalAmount}` }
-    ]
+    ] as DescData[]
 })
 
 // 查看订单
 const handleViewOrder = (order: Order) => {
     currentOrder.value = order
     drawerVisible.value = true
-}
-
-// 支付订单
-const handlePayOrder = (order: Order) => {
-    Modal.confirm({
-        title: '确认支付',
-        content: `确认支付订单 ${order.orderNo} 吗？`,
-        onOk: () => {
-            const updated = updateOrder(order.orderNo, {
-                status: 'paid',
-                payTime: new Date().toISOString()
-            })
-            if (updated) {
-                Message.success('支付成功')
-                loadData()
-            }
-        }
-    })
-}
-
-// 取消订单
-const handleCancelOrder = (order: Order) => {
-    Modal.confirm({
-        title: '确认取消',
-        content: `确认取消订单 ${order.orderNo} 吗？`,
-        onOk: () => {
-            const updated = updateOrder(order.orderNo, {
-                status: 'cancelled'
-            })
-            if (updated) {
-                Message.success('订单已取消')
-                loadData()
-            }
-        }
-    })
 }
 
 // 初始化

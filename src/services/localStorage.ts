@@ -153,10 +153,7 @@ export const getPerformanceTickets = (performanceId: number, sessionId: number) 
     const data = localStorage.getItem(TICKETS_KEY)
     const tickets = data ? JSON.parse(data) : {}
     const key = `${performanceId}-${sessionId}`
-    return (tickets[key] || []).map(ticket => ({
-        ...ticket,
-        status: ticket.remainingQuantity > 0 ? 'on_sale' : 'sold_out'
-    })) as PerformanceTicket[]
+    return (tickets[key] || []) as PerformanceTicket[]
 }
 
 /** 保存场次票档列表 */
@@ -234,39 +231,4 @@ export const filterOrders = (params: {
         if (params.endTime && item.createTime > params.endTime) return false
         return true
     })
-}
-
-/** 获取单个订单详情 */
-export const getOrder = (orderNo: string) => {
-    const orders = getOrders()
-    return orders.find(item => item.orderNo === orderNo)
-}
-
-/** 创建订单 */
-export const createOrder = (order: Omit<Order, 'orderNo' | 'createTime' | 'status'>) => {
-    const orders = getOrders()
-    const newOrder = {
-        ...order,
-        orderNo: generateOrderNo(),
-        createTime: new Date().toISOString(),
-        status: 'pending' as const
-    }
-    orders.push(newOrder)
-    saveOrders(orders)
-    return newOrder
-}
-
-/** 更新订单 */
-export const updateOrder = (orderNo: string, order: Partial<Order>) => {
-    const orders = getOrders()
-    const index = orders.findIndex(item => item.orderNo === orderNo)
-    if (index === -1) return null
-
-    const updatedOrder = {
-        ...orders[index],
-        ...order
-    }
-    orders[index] = updatedOrder
-    saveOrders(orders)
-    return updatedOrder
 }

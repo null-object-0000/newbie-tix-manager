@@ -43,13 +43,6 @@
                         </template>
                     </a-table-column>
                     <a-table-column title="总票数" data-index="totalQuantity" :width="150" />
-                    <a-table-column title="状态" data-index="status" :width="65">
-                        <template #cell="{ record }">
-                            <a-tag :color="{ 'on_sale': 'green', 'sold_out': 'red' }[record.status]">
-                                {{ record.status === 'on_sale' ? '在售' : '售罄' }}
-                            </a-tag>
-                        </template>
-                    </a-table-column>
                     <a-table-column title="操作" :width="150">
                         <template #cell="{ record }">
                             <a-button type="text" size="small" @click="handleEditTicket(record)">
@@ -86,7 +79,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
-import type { Performance, PerformanceSession } from '@/types'
+import type { Performance, PerformanceSession, PerformanceTicket } from '@/types'
 import { getPerformance, getPerformanceSession, getPerformanceTickets, createTicket, updateTicket, deleteTicket } from '@/services/localStorage'
 import { PERFORMANCE_STATUS_MAP } from '@/types/constants'
 
@@ -194,8 +187,6 @@ const handleTicketSubmit = async (done: (closed: boolean) => void) => {
             name: ticketForm.name,
             price: ticketForm.price,
             totalQuantity: ticketForm.totalQuantity,
-            remainingQuantity: currentTicket.value ? currentTicket.value.remainingQuantity : ticketForm.totalQuantity,
-            status: 'on_sale'
         }
 
         if (currentTicket.value) {

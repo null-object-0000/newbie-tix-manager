@@ -107,7 +107,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import type { FileItem, FormInstance, RequestOption } from '@arco-design/web-vue'
+import type { FileItem, FormInstance, RequestOption, UploadRequest } from '@arco-design/web-vue'
 import { Message } from '@arco-design/web-vue'
 import type { Performance, PerformanceStatus } from '@/types'
 import { createPerformance, updatePerformance, getPerformance } from '@/services/localStorage'
@@ -296,30 +296,38 @@ const uploadImage = async (fileItem: FileItem) => {
 }
 
 // 处理封面图片上传
-const handleCoverUpload = async (options: RequestOption) => {
-    uploadLoading.value = true
-    try {
-        const url = await uploadImage(options.fileItem)
-        if (url) {
-            formData.coverUrl = url
+const handleCoverUpload = (options: RequestOption) => {
+    const task = new Promise<UploadRequest>(async () => {
+        uploadLoading.value = true
+        try {
+            const url = await uploadImage(options.fileItem)
+            if (url) {
+                formData.coverUrl = url
+            }
+        } finally {
+            uploadLoading.value = false
         }
-    } finally {
-        uploadLoading.value = false
-    }
+    })
+
+    return { abort() { } } as UploadRequest
 }
 
 // 处理相关图片上传
-const handleImageUpload = async (options: RequestOption) => {
-    const index = formData.images.length
-    imageUploadLoading.value[index] = true
-    try {
-        const url = await uploadImage(options.fileItem)
-        if (url) {
-            formData.images.push(url)
+const handleImageUpload = (options: RequestOption) => {
+    const task = new Promise<UploadRequest>(async () => {
+        const index = formData.images.length
+        imageUploadLoading.value[index] = true
+        try {
+            const url = await uploadImage(options.fileItem)
+            if (url) {
+                formData.images.push(url)
+            }
+        } finally {
+            imageUploadLoading.value[index] = false
         }
-    } finally {
-        imageUploadLoading.value[index] = false
-    }
+    })
+
+    return { abort() { } } as UploadRequest
 }
 
 // 处理相关图片删除

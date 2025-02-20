@@ -39,7 +39,7 @@
                 </template>
                 <template #status="{ record }: { record: Performance }">
                     <a-tag :color="{ 'on_sale': 'green', 'coming_soon': 'blue', 'sold_out': 'red' }[record.status]">
-                        {{ statusOptions.find(option => option.value === record.status)?.label }}
+                        {{statusOptions.find(option => option.value === record.status)?.label}}
                     </a-tag>
                 </template>
                 <template #actions="{ record }: { record: Performance }">
@@ -73,7 +73,9 @@ const filterForm = reactive({
 })
 
 // 计算演出总票数
-const calculateTotalTickets = (performanceId: number) => {
+const calculateTotalTickets = (performanceId: number | undefined) => {
+    if (!performanceId) return 0
+
     const sessions = getPerformanceSessions(performanceId)
     let total = 0
     sessions.forEach(session => {

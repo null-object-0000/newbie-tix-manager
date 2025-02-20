@@ -13,7 +13,7 @@
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="售票中" :value="statistics.performances.onSale"
-                                value-style="color: var(--color-success)" />
+                                style="color: var(--color-success)" />
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="待开售" :value="statistics.performances.comingSoon" />
@@ -35,11 +35,11 @@
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="今日订单" :value="statistics.orders.today"
-                                value-style="color: var(--color-success)" />
+                                style="color: var(--color-success)" />
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="待处理" :value="statistics.orders.pending"
-                                value-style="color: var(--color-warning)" />
+                                style="color: var(--color-warning)" />
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="已完成" :value="statistics.orders.completed" />
@@ -58,7 +58,7 @@
                         </a-grid-item>
                         <a-grid-item>
                             <a-statistic title="今日收入" prefix="¥" :value="statistics.revenue.today"
-                                value-style="color: var(--color-success)" />
+                                style="color: var(--color-success)" />
                         </a-grid-item>
                     </a-grid>
                 </a-card>
