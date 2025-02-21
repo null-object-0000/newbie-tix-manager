@@ -68,6 +68,18 @@ export const deletePerformance = async (id: number) => {
     return true
 }
 
+/** 演出下架 */
+export const takeOffline = async (id: number) => {
+    const response = await api.put<Performance>(`/performances/${id}/offline`)
+    return response.data
+}
+
+/** 演出上架 */
+export const takeOnline = async (id: number) => {
+    const response = await api.put<Performance>(`/performances/${id}/online`)
+    return response.data
+}
+
 /** 获取演出场次列表 */
 export const getPerformanceSessions = async (performanceId: number) => {
     const response = await api.get<PerformanceSession[]>(`/performances/${performanceId}/sessions`)

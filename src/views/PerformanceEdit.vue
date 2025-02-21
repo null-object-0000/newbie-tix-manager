@@ -183,7 +183,7 @@ const formData = reactive<Performance>({
     coverUrl: '',
     images: [] as string[],
     venue: '',
-    status: 'COMING_SOON' as PerformanceStatus, // 默认未开售
+    status: 'OFFLINE' as PerformanceStatus, // 默认已下架
     description: '',
     notices: [] as string[]
 })

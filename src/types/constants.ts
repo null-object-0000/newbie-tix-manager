@@ -2,7 +2,8 @@
 export const PERFORMANCE_STATUS_MAP = {
     COMING_SOON: '待开售',
     ON_SALE: '售票中',
-    SOLD_OUT: '已售罄'
+    SOLD_OUT: '已售罄',
+    OFFLINE: '已下架',
 } as const
 
 /** 演出状态选项（用于下拉选择） */

@@ -49,7 +49,7 @@
                     <a-table-column title="状态" data-index="status" :width="100">
                         <template #cell="{ record }: { record: PerformanceSession }">
                             <a-tag
-                                :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red' }[record.status]">
+                                :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red', 'OFFLINE': 'orange' }[record.status]">
                                 {{ PERFORMANCE_STATUS_MAP[record.status] }}
                             </a-tag>
                         </template>

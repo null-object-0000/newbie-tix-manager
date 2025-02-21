@@ -219,16 +219,20 @@ const drawerVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
 
 // 订单详情信息
-const orderInfo = computed(async () => {
+const orderInfo = ref()
+
+// 查看订单
+const handleViewOrder = async (order: Order) => {
+    currentOrder.value = order
+
     if (!currentOrder.value) return []
 
-    const order = currentOrder.value
     const performance = await getPerformance(order.performanceId)
     const session = await getPerformanceSession(order.performanceId, order.sessionId)
     const tickets = await getSessionTickets(order.performanceId, order.sessionId)
     const ticket = tickets.find(item => item.id === order.ticketId)
 
-    return [
+    orderInfo.value = [
         { label: '订单编号', value: order.orderNo },
         { label: '下单时间', value: formatDateTime(order.createTime) },
         { label: '支付时间', value: order.payTime ? formatDateTime(order.payTime) : '-' },
@@ -241,11 +245,7 @@ const orderInfo = computed(async () => {
         { label: '票面总价', value: `¥${order.totalAmount}` },
         { label: '实付金额', value: `¥${order.finalAmount}` }
     ] as DescData[]
-})
 
-// 查看订单
-const handleViewOrder = (order: Order) => {
-    currentOrder.value = order
     drawerVisible.value = true
 }
 

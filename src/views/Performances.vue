@@ -35,15 +35,24 @@
             </template>
             <a-table :columns="columns" :data="tableData" :pagination="{ pageSize: 10 }" :loading="loading">
                 <template #status="{ record }: { record: Performance }">
-                    <a-tag :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red' }[record.status]">
-                        {{statusOptions.find(option => option.value === record.status)?.label}}
+                    <a-tag
+                        :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red', 'OFFLINE': 'orange' }[record.status]">
+                        {{ statusOptions.find(option => option.value === record.status)?.label }}
                     </a-tag>
                 </template>
                 <template #actions="{ record }: { record: Performance }">
-                    <a-button type="text" size="small"
-                        @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
-                    <a-button type="text" size="small"
-                        @click="router.push(`/performances/${record.id}/sessions`)">场次管理</a-button>
+                    <a-space>
+                        <a-button type="text" size="small"
+                            @click="router.push(`/performances/${record.id}/edit`)">编辑</a-button>
+                        <a-button type="text" size="small"
+                            @click="router.push(`/performances/${record.id}/sessions`)">场次管理</a-button>
+                        <a-popconfirm :content="`确认${record.status === 'OFFLINE' ? '上架' : '下架'}该演出吗？`"
+                            @ok="handleStatusChange(record)">
+                            <a-button type="text" size="small" status="warning" :loading="record.id === updatingId">
+                                {{ record.status === 'OFFLINE' ? '上架' : '下架' }}
+                            </a-button>
+                        </a-popconfirm>
+                    </a-space>
                 </template>
             </a-table>
         </a-card>
@@ -55,13 +64,15 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Performance, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_FILTER_OPTIONS } from '@/types/constants'
-import { filterPerformances } from '@/services/api'
+import { filterPerformances, takeOffline, takeOnline } from '@/services/api'
+import { Modal } from '@arco-design/web-vue'
 
 const router = useRouter()
 
 // 表格数据
 const tableData = ref<Performance[]>([])
 const loading = ref(false)
+const updatingId = ref<number | null>(null)
 
 // 筛选条件
 const filterForm = reactive({
@@ -112,6 +123,24 @@ const handleReset = () => {
     filterForm.venue = ''
     filterForm.status = ''
     loadData()
+}
+
+// 处理上下架状态变更
+const handleStatusChange = async (performance: Performance) => {
+    if (!performance.id) return
+    updatingId.value = performance.id
+    try {
+        if (performance.status === 'OFFLINE') {
+            await takeOnline(performance.id)
+        } else {
+            await takeOffline(performance.id)
+        }
+        await loadData()
+    } catch (error) {
+        console.error('更新演出状态失败:', error)
+    } finally {
+        updatingId.value = null
+    }
 }
 
 // 初始化加载数据
