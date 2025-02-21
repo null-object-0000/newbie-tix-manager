@@ -34,17 +34,27 @@
                             <a-statistic title="总订单数" :value="statistics.orders.total" />
                         </a-grid-item>
                         <a-grid-item>
-                            <a-statistic title="今日订单" :value="statistics.orders.today"
+                            <a-statistic title="已完成" :value="statistics.orders.completed"
                                 style="color: var(--color-success)" />
                         </a-grid-item>
                         <a-grid-item>
-                            <a-statistic title="待处理" :value="statistics.orders.pending"
-                                style="color: var(--color-warning)" />
+                            <a-statistic title="待支付" :value="statistics.orders.pending" />
                         </a-grid-item>
                         <a-grid-item>
-                            <a-statistic title="已完成" :value="statistics.orders.completed" />
+                            <a-statistic title="已取消" :value="statistics.orders.cancelled" />
                         </a-grid-item>
                     </a-grid>
+                </a-card>
+            </a-col>
+
+            <!-- 小程序体验码 -->
+            <a-col :span="8">
+                <a-card class="stats-card">
+                    <template #title>小程序体验码</template>
+                    <div class="qrcode-container">
+                        <img src="/qrcode.jpg" alt="小程序体验码" class="qrcode-image" />
+                        <div class="qrcode-tip">扫码体验购票端小程序</div>
+                    </div>
                 </a-card>
             </a-col>
 
@@ -103,7 +113,8 @@ const statistics = ref({
         total: 156,
         today: 23,
         pending: 5,
-        completed: 18
+        completed: 18,
+        cancelled: 12
     },
     revenue: {
         total: 52680,
@@ -154,5 +165,25 @@ const statistics = ref({
         opacity: 1;
         transform: translateY(0);
     }
+}
+</style>
+
+<style scoped>
+.qrcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+}
+
+.qrcode-image {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 16px;
+}
+
+.qrcode-tip {
+    color: var(--color-text-2);
+    font-size: 14px;
 }
 </style>
