@@ -129,7 +129,7 @@ const sessionForm = reactive({
     performanceId: Number(route.params.id),
     saleTimeRange: [] as string[],
     showTimeRange: [] as string[],
-    status: 'COMING_SOON' as PerformanceStatus
+    status: 'ON_SALE' as PerformanceStatus
 })
 
 const sessionRules = {
@@ -169,7 +169,7 @@ const handleAddSession = () => {
     sessionForm.title = ''
     sessionForm.saleTimeRange = []
     sessionForm.showTimeRange = []
-    sessionForm.status = 'COMING_SOON'
+    sessionForm.status = 'ON_SALE'
     sessionModalVisible.value = true
 }
 

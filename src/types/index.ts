@@ -55,6 +55,7 @@ export interface PerformanceTicket {
     price: number
     /** 总库存数量 */
     totalQuantity: number
+    status: PerformanceStatus
 }
 
 /** 订单状态类型 - 表示订单的处理状态 */

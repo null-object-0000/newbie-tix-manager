@@ -79,7 +79,7 @@
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
-import type { Performance, PerformanceSession, PerformanceTicket } from '@/types'
+import type { Performance, PerformanceSession, PerformanceStatus, PerformanceTicket } from '@/types'
 import { getPerformance, getPerformanceSession, getSessionTickets, createTicket, updateTicket, deleteTicket } from '@/services/api'
 import { PERFORMANCE_STATUS_MAP } from '@/types/constants'
 
@@ -121,7 +121,8 @@ const currentTicket = ref<any | null>(null)
 const ticketForm = reactive({
     title: '',
     price: 0,
-    totalQuantity: 0
+    totalQuantity: 0,
+    status: 'ON_SALE' as PerformanceStatus
 })
 
 const ticketRules = {
@@ -166,6 +167,7 @@ const handleAddTicket = () => {
     ticketForm.title = ''
     ticketForm.price = 0
     ticketForm.totalQuantity = 0
+    ticketForm.status = 'ON_SALE'
     ticketModalVisible.value = true
 }
 
@@ -175,6 +177,7 @@ const handleEditTicket = (ticket: PerformanceTicket) => {
     ticketForm.title = ticket.title
     ticketForm.price = ticket.price
     ticketForm.totalQuantity = ticket.totalQuantity
+    ticketForm.status = ticket.status
     ticketModalVisible.value = true
 }
 
@@ -198,6 +201,7 @@ const handleTicketSubmit = async (done: (closed: boolean) => void) => {
             title: ticketForm.title,
             price: ticketForm.price,
             totalQuantity: ticketForm.totalQuantity,
+            status: ticketForm.status
         } as PerformanceTicket
 
         if (currentTicket.value) {
