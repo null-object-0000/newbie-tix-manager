@@ -158,7 +158,7 @@ const editorConfig = {
                     uploadFormData.append('source', file)
                     uploadFormData.append('format', 'json')
 
-                    const response = await fetch('/api/freeimage/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
+                    const response = await fetch('/api/upload/file/image', {
                         method: 'POST',
                         body: uploadFormData
                     })
@@ -273,7 +273,7 @@ const uploadImage = async (fileItem: FileItem) => {
         uploadFormData.append('source', fileItem.file)
         uploadFormData.append('format', 'json')
 
-        const response = await fetch('/api/freeimage/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
+        const response = await fetch('/api/upload/file/image', {
             method: 'POST',
             body: uploadFormData
         })
