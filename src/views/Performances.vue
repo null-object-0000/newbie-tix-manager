@@ -8,7 +8,7 @@
                 <a-form-item field="title" label="演出标题">
                     <a-input v-model="filterForm.title" placeholder="请输入演出标题" allow-clear />
                 </a-form-item>
-                <a-form-item field="venue" label="场馆">
+                <a-form-item field="venue" label="演出场馆">
                     <a-input v-model="filterForm.venue" placeholder="请输入场馆名称" allow-clear />
                 </a-form-item>
                 <a-form-item field="status" label="状态">
@@ -33,12 +33,9 @@
                     </a-button>
                 </a-space>
             </template>
-            <a-table :columns="columns" :data="tableData" :pagination="{ pageSize: 10 }">
-                <template #totalTickets="{ record }: { record: Performance }">
-                    {{ calculateTotalTickets(record.id) }}
-                </template>
+            <a-table :columns="columns" :data="tableData" :pagination="{ pageSize: 10 }" :loading="loading">
                 <template #status="{ record }: { record: Performance }">
-                    <a-tag :color="{ 'on_sale': 'green', 'coming_soon': 'blue', 'sold_out': 'red' }[record.status]">
+                    <a-tag :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red' }[record.status]">
                         {{statusOptions.find(option => option.value === record.status)?.label}}
                     </a-tag>
                 </template>
@@ -58,12 +55,13 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Performance, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_FILTER_OPTIONS } from '@/types/constants'
-import { filterPerformances, getPerformanceSessions, getPerformanceTickets } from '@/services/localStorage'
+import { filterPerformances } from '@/services/api'
 
 const router = useRouter()
 
 // 表格数据
 const tableData = ref<Performance[]>([])
+const loading = ref(false)
 
 // 筛选条件
 const filterForm = reactive({
@@ -72,31 +70,11 @@ const filterForm = reactive({
     status: '' as PerformanceStatus | ''
 })
 
-// 计算演出总票数
-const calculateTotalTickets = (performanceId: number | undefined) => {
-    if (!performanceId) return 0
-
-    const sessions = getPerformanceSessions(performanceId)
-    let total = 0
-    sessions.forEach(session => {
-        const tickets = getPerformanceTickets(performanceId, session.id)
-        tickets.forEach(ticket => {
-            total += ticket.totalQuantity || 0
-        })
-    })
-    return total
-}
-
 // 表格列定义
 const columns = [
     { title: '演出ID', dataIndex: 'id', width: 100 },
     { title: '演出标题', dataIndex: 'title' },
-    { title: '场馆', dataIndex: 'venue' },
-    {
-        title: '总票数',
-        width: 100,
-        slotName: 'totalTickets'
-    },
+    { title: '演出场馆', dataIndex: 'venue' },
     {
         title: '状态',
         dataIndex: 'status',
@@ -112,8 +90,15 @@ const columns = [
 const statusOptions = PERFORMANCE_STATUS_FILTER_OPTIONS
 
 // 加载数据
-const loadData = () => {
-    tableData.value = filterPerformances(filterForm)
+const loadData = async () => {
+    loading.value = true
+    try {
+        tableData.value = await filterPerformances(filterForm)
+    } catch (error) {
+        console.error('加载演出数据失败:', error)
+    } finally {
+        loading.value = false
+    }
 }
 
 // 搜索
@@ -134,7 +119,6 @@ onMounted(() => {
     loadData()
 })
 </script>
-
 
 <style scoped>
 .performances {

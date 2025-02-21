@@ -43,13 +43,14 @@
                     </a-table-column>
                     <a-table-column title="总票数" :width="120">
                         <template #cell="{ record }: { record: PerformanceSession }">
-                            {{ getPerformanceTickets(record.performanceId, record.id).reduce((sum, ticket) => sum + ticket.totalQuantity, 0) }}
+                            {{ getPerformanceTickets(record.performanceId, record.id).reduce((sum, ticket) => sum +
+            ticket.totalQuantity, 0) }}
                         </template>
                     </a-table-column>
                     <a-table-column title="状态" data-index="status" :width="100">
                         <template #cell="{ record }: { record: PerformanceSession }">
                             <a-tag
-                                :color="{ 'on_sale': 'green', 'coming_soon': 'blue', 'sold_out': 'red' }[record.status]">
+                                :color="{ 'ON_SALE': 'green', 'COMING_SOON': 'blue', 'SOLD_OUT': 'red' }[record.status]">
                                 {{ PERFORMANCE_STATUS_MAP[record.status] }}
                             </a-tag>
                         </template>
@@ -100,7 +101,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
 import type { Performance, PerformanceSession, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_MAP, PERFORMANCE_STATUS_OPTIONS } from '@/types/constants'
-import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession, getPerformanceTickets } from '@/services/localStorage'
+import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession } from '@/services/api'
+import { getPerformanceTickets } from '@/services/localStorage'
 
 const route = useRoute()
 const router = useRouter()
@@ -129,7 +131,7 @@ const sessionForm = reactive({
     performanceId: Number(route.params.id),
     saleTimeRange: [] as string[],
     showTimeRange: [] as string[],
-    status: 'coming_soon' as PerformanceStatus
+    status: 'COMING_SOON' as PerformanceStatus
 })
 
 const sessionRules = {
@@ -139,19 +141,26 @@ const sessionRules = {
 }
 
 // 初始化加载数据
-onMounted(() => {
+onMounted(async () => {
     const id = Number(route.params.id)
     if (id) {
-        const data = getPerformance(id)
-        if (data) {
-            performance.value = data
-            // 加载场次数据
+        try {
             loading.value = true
-            sessions.value = getPerformanceSessions(id)
+            const data = await getPerformance(id)
+            if (data) {
+                performance.value = data
+                // 加载场次数据
+                const sessionsData = await getPerformanceSessions(id)
+                sessions.value = sessionsData
+            } else {
+                Message.error('演出不存在')
+                router.push('/performances')
+            }
+        } catch (error) {
+            console.error('加载数据失败:', error)
+            Message.error('加载数据失败')
+        } finally {
             loading.value = false
-        } else {
-            Message.error('演出不存在')
-            router.push('/performances')
         }
     }
 })
@@ -162,7 +171,7 @@ const handleAddSession = () => {
     sessionForm.title = ''
     sessionForm.saleTimeRange = []
     sessionForm.showTimeRange = []
-    sessionForm.status = 'coming_soon'
+    sessionForm.status = 'COMING_SOON'
     sessionModalVisible.value = true
 }
 
@@ -218,23 +227,35 @@ const handleSessionSubmit = async (done: (closed: boolean) => void) => {
             status: sessionForm.status
         }
 
-        if (currentSession.value) {
-            // 更新场次
-            const result = updateSession(performanceId, currentSession.value.id, sessionData)
-            if (result) {
-                const index = sessions.value.findIndex(item => item.id === currentSession.value?.id)
-                if (index !== -1) {
-                    sessions.value[index] = result
+        if (currentSession.value && currentSession.value.id) {
+            try {
+                // 更新场次
+                const result = await updateSession(performanceId, currentSession.value.id, sessionData)
+                if (result) {
+                    const index = sessions.value.findIndex(item => item.id === currentSession.value?.id)
+                    if (index !== -1) {
+                        sessions.value[index] = result
+                    }
+                    Message.success('更新成功')
+                    return done(true)
                 }
-                Message.success('更新成功')
-                return done(true)
+            } catch (error) {
+                console.error('更新场次失败:', error)
+                Message.error('更新失败')
+                return done(false)
             }
         } else {
-            // 创建场次
-            const result = createSession(performanceId, sessionData)
-            sessions.value.push(result)
-            Message.success('创建成功')
-            return done(true)
+            try {
+                // 创建场次
+                const result = await createSession(performanceId, sessionData)
+                sessions.value.push(result)
+                Message.success('创建成功')
+                return done(true)
+            } catch (error) {
+                console.error('创建场次失败:', error)
+                Message.error('创建失败')
+                return done(false)
+            }
         }
 
         Message.error('操作失败')
@@ -252,12 +273,18 @@ const handleDeleteSession = (session: PerformanceSession) => {
     Modal.warning({
         title: '确认删除',
         content: '确定要删除该场次吗？',
-        onOk: () => {
+        onOk: async () => {
             const performanceId = Number(route.params.id)
-            if (deleteSession(performanceId, session.id)) {
+            try {
+                if (!session.id) {
+                    Message.error('场次ID无效')
+                    return
+                }
+                await deleteSession(performanceId, session.id)
                 sessions.value = sessions.value.filter(item => item.id !== session.id)
                 Message.success('删除成功')
-            } else {
+            } catch (error) {
+                console.error('删除场次失败:', error)
                 Message.error('删除失败')
             }
         }
@@ -297,9 +324,9 @@ const getStatusText = (status: string) => {
         not_started: '未开始',
         in_progress: '进行中',
         ended: '已结束',
-        coming_soon: '即将开售',
-        on_sale: '售票中',
-        sold_out: '已售罄'
+        COMING_SOON: '即将开售',
+        ON_SALE: '售票中',
+        SOLD_OUT: '已售罄'
     }
     return statusMap[status] || status
 }

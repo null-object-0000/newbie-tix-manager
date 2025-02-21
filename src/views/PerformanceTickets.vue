@@ -36,8 +36,8 @@
             <a-table :data="tickets" :loading="loading" :pagination="false" :bordered="false">
                 <template #columns>
                     <a-table-column title="票档ID" data-index="id" :width="85" />
-                    <a-table-column title="票档名称" data-index="name" :width="150" />
-                    <a-table-column title="票价" :width="120">
+                    <a-table-column title="票档标题" data-index="title" :width="150" />
+                    <a-table-column title="票档价格" :width="120">
                         <template #cell="{ record }">
                             ¥{{ record.price }}
                         </template>
@@ -61,11 +61,11 @@
         <a-modal v-model:visible="ticketModalVisible" :title="currentTicket ? '编辑票档' : '新增票档'"
             :on-before-ok="handleTicketSubmit" @cancel="handleTicketCancel">
             <a-form ref="ticketFormRef" :model="ticketForm" :rules="ticketRules" auto-label-width>
-                <a-form-item field="name" label="票档名称" :rules="[{ required: true, message: '请输入票档名称' }]">
-                    <a-input v-model="ticketForm.name" placeholder="请输入票档名称" allow-clear />
+                <a-form-item field="title" label="票档标题" :rules="[{ required: true, message: '请输入票档标题' }]">
+                    <a-input v-model="ticketForm.title" placeholder="请输入票档标题" allow-clear />
                 </a-form-item>
-                <a-form-item field="price" label="票价" :rules="[{ required: true, message: '请输入票价' }]">
-                    <a-input-number v-model="ticketForm.price" :min="0" :precision="2" placeholder="请输入票价" />
+                <a-form-item field="price" label="票档价格" :rules="[{ required: true, message: '请输入票档价格' }]">
+                    <a-input-number v-model="ticketForm.price" :min="0" :precision="2" placeholder="请输入票档价格" />
                 </a-form-item>
                 <a-form-item field="totalQuantity" label="总票数" :rules="[{ required: true, message: '请输入总票数' }]">
                     <a-input-number v-model="ticketForm.totalQuantity" :min="1" :precision="0" placeholder="请输入总票数" />
@@ -76,11 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
 import type { Performance, PerformanceSession, PerformanceTicket } from '@/types'
-import { getPerformance, getPerformanceSession, getPerformanceTickets, createTicket, updateTicket, deleteTicket } from '@/services/localStorage'
+import { getPerformance, getPerformanceSession, getSessionTickets, createTicket, updateTicket, deleteTicket } from '@/services/api'
 import { PERFORMANCE_STATUS_MAP } from '@/types/constants'
 
 const route = useRoute()
@@ -119,51 +119,60 @@ const ticketModalVisible = ref(false)
 const ticketFormRef = ref()
 const currentTicket = ref<any | null>(null)
 const ticketForm = reactive({
-    name: '',
+    title: '',
     price: 0,
     totalQuantity: 0
 })
 
 const ticketRules = {
-    name: [{ required: true, message: '请输入票档名称' }],
-    price: [{ required: true, message: '请输入票价' }],
+    title: [{ required: true, message: '请输入票档标题' }],
+    price: [{ required: true, message: '请输入票档价格' }],
     totalQuantity: [{ required: true, message: '请输入总票数' }]
 }
 
 // 初始化加载数据
-onMounted(() => {
+onBeforeMount(async () => {
     const performanceId = Number(route.params.performanceId)
     const sessionId = Number(route.params.sessionId)
     if (performanceId && sessionId) {
-        const performanceData = getPerformance(performanceId)
-        const sessionData = getPerformanceSession(performanceId, sessionId)
+        const performanceData = await getPerformance(performanceId)
+        const sessionData = await getPerformanceSession(performanceId, sessionId)
         if (performanceData && sessionData) {
             performance.value = performanceData
             session.value = sessionData
+
             // 加载票档数据
-            loading.value = true
-            tickets.value = getPerformanceTickets(performanceId, sessionId)
-            loading.value = false
+            await refreshTickets()
         } else {
             Message.error('场次不存在')
-            router.push('/performances')
+            router.push(`/performances/${performanceId}/sessions`)
         }
     }
 })
 
+const refreshTickets = async () => {
+    const performanceId = Number(route.params.performanceId)
+    const sessionId = Number(route.params.sessionId)
+    if (performanceId && sessionId) {
+        loading.value = true
+        tickets.value = await getSessionTickets(performanceId, sessionId)
+        loading.value = false
+    }
+}
+
 // 处理添加票档
 const handleAddTicket = () => {
     currentTicket.value = null
-    ticketForm.name = ''
+    ticketForm.title = ''
     ticketForm.price = 0
     ticketForm.totalQuantity = 0
     ticketModalVisible.value = true
 }
 
 // 处理编辑票档
-const handleEditTicket = (ticket: any) => {
+const handleEditTicket = (ticket: PerformanceTicket) => {
     currentTicket.value = ticket
-    ticketForm.name = ticket.name
+    ticketForm.title = ticket.title
     ticketForm.price = ticket.price
     ticketForm.totalQuantity = ticket.totalQuantity
     ticketModalVisible.value = true
@@ -184,27 +193,31 @@ const handleTicketSubmit = async (done: (closed: boolean) => void) => {
         const performanceId = Number(route.params.performanceId)
         const sessionId = Number(route.params.sessionId)
         const ticketData = {
-            name: ticketForm.name,
+            performanceId: performanceId,
+            sessionId: sessionId,
+            title: ticketForm.title,
             price: ticketForm.price,
             totalQuantity: ticketForm.totalQuantity,
-        }
+        } as PerformanceTicket
 
         if (currentTicket.value) {
             // 更新票档
-            const result = updateTicket(performanceId, sessionId, currentTicket.value.id, ticketData)
+            const result = await updateTicket(performanceId, sessionId, currentTicket.value.id, ticketData)
             if (result) {
                 const index = tickets.value.findIndex(item => item.id === currentTicket.value?.id)
                 if (index !== -1) {
                     tickets.value[index] = result
                 }
                 Message.success('更新成功')
+                refreshTickets()
                 return done(true)
             }
         } else {
             // 创建票档
-            const result = createTicket(performanceId, sessionId, ticketData)
+            const result = await createTicket(performanceId, sessionId, ticketData)
             tickets.value.push(result)
             Message.success('创建成功')
+            refreshTickets()
             return done(true)
         }
 
@@ -218,15 +231,15 @@ const handleTicketSubmit = async (done: (closed: boolean) => void) => {
 }
 
 // 处理删除票档
-const handleDeleteTicket = (ticket: any) => {
+const handleDeleteTicket = async (ticket: any) => {
     Modal.warning({
         title: '确认删除',
         content: '确定要删除该票档吗？',
         hideCancel: false,
-        onOk: () => {
+        onOk: async () => {
             const performanceId = Number(route.params.performanceId)
             const sessionId = Number(route.params.sessionId)
-            if (deleteTicket(performanceId, sessionId, ticket.id)) {
+            if (await deleteTicket(performanceId, sessionId, ticket.id)) {
                 tickets.value = tickets.value.filter(item => item.id !== ticket.id)
                 Message.success('删除成功')
             } else {

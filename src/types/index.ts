@@ -1,5 +1,5 @@
 /** 演出状态类型 - 表示演出当前销售状态 */
-export type PerformanceStatus = 'on_sale' | 'coming_soon' | 'sold_out'
+export type PerformanceStatus = 'ON_SALE' | 'COMING_SOON' | 'SOLD_OUT'
 
 /** 演出信息 - 包含演出的所有基本信息和状态 */
 export interface Performance {
@@ -24,7 +24,7 @@ export interface Performance {
 /** 演出场次信息 - 包含具体场次的时间和票务信息 */
 export interface PerformanceSession {
     /** 场次ID，唯一标识 */
-    id: number
+    id?: number
     /** 关联的演出ID */
     performanceId: number
     /** 场次标题（可选，为空时使用场次演出开始时间作为标题） */
@@ -44,7 +44,7 @@ export interface PerformanceSession {
 /** 票档信息 - 包含票价、区域和库存信息 */
 export interface PerformanceTicket {
     /** 票档ID，唯一标识 */
-    id: number
+    id?: number
     /** 关联的演出ID */
     performanceId: number
     /** 关联的场次ID */

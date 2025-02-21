@@ -22,6 +22,11 @@ export default defineConfig({
         target: 'https://freeimage.host',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/freeimage/, '/api')
+      },
+      '/api': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
   }

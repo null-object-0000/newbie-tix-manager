@@ -84,8 +84,7 @@
                     <div class="notices-container">
                         <div v-for="(notice, index) in formData.notices" :key="index" class="notice-item">
                             <div class="notice-input-wrapper">
-                                <a-textarea v-model="formData.notices[index]" placeholder="请输入观演须知"
-                                    :auto-size="{ minRows: 2, maxRows: 4 }" />
+                                <a-input v-model="formData.notices[index]" placeholder="请输入观演须知" />
                                 <a-button type="text" status="danger" @click="handleRemoveNotice(index)">删除</a-button>
                             </div>
                         </div>
@@ -110,10 +109,11 @@ import { useRouter, useRoute } from 'vue-router'
 import type { FileItem, FormInstance, RequestOption, UploadRequest } from '@arco-design/web-vue'
 import { Message } from '@arco-design/web-vue'
 import type { Performance, PerformanceStatus } from '@/types'
-import { createPerformance, updatePerformance, getPerformance } from '@/services/localStorage'
+import { createPerformance, updatePerformance, getPerformance } from '@/services/api'
 import '@wangeditor/editor/dist/css/style.css'
 // @ts-ignore
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+
 const router = useRouter()
 const route = useRoute()
 
@@ -200,18 +200,18 @@ const formData = reactive<Performance>({
     coverUrl: '',
     images: [] as string[],
     venue: '',
-    status: 'coming_soon' as PerformanceStatus, // 默认未开售
+    status: 'COMING_SOON' as PerformanceStatus, // 默认未开售
     description: '',
     notices: [] as string[]
 })
 // 初始化加载数据
-onMounted(() => {
+onMounted(async () => {
     const id = Number(route.params.id)
     if (id) {
-        const performance = getPerformance(id)
-        if (performance) {
+        try {
+            const performance = await getPerformance(id)
             Object.assign(formData, performance)
-        } else {
+        } catch (error) {
             Message.error('演出不存在')
             router.push('/performances')
         }
@@ -367,8 +367,8 @@ const handleSubmit = async () => {
         // 等待表单验证完成
         const errors = await formRef.value.validate()
         if (errors) {
-            console.error('表单验证失败:', errors)
-            Message.error('请填写必填项')
+            const keys = Object.keys(errors)
+            Message.error(errors[keys[0]].message)
             return
         }
 
@@ -376,14 +376,10 @@ const handleSubmit = async () => {
         const id = Number(route.params.id)
         if (id) {
             // 更新演出
-            const result = updatePerformance(id, formData)
-            if (!result) {
-                Message.error('演出不存在')
-                return
-            }
+            await updatePerformance(id, formData)
         } else {
             // 创建演出
-            createPerformance(formData)
+            await createPerformance(formData)
         }
 
         Message.success('保存成功')

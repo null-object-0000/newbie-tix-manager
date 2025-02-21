@@ -13,7 +13,7 @@ setInterval(() => {
 <template>
     <a-layout-header class="app-header">
         <div class="header-left">
-            <h1 class="logo">NewbieTix 管理系统</h1>
+            <h1 class="logo">Newbie Tix 管理端</h1>
         </div>
         <div class="header-right">
             <a-space>
