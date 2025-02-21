@@ -127,3 +127,17 @@ export const deleteTicket = async (performanceId: number, sessionId: number, tic
     await api.delete(`/performances/${performanceId}/sessions/${sessionId}/tickets/${ticketId}`)
     return true
 }
+
+/** 上传图片 */
+export const uploadImage = async (file: File) => {
+    const formData = new FormData()
+    formData.append('action', 'upload')
+    formData.append('source', file)
+    formData.append('format', 'json')
+
+    const response = await api.post('/upload/file/image', formData)
+    if (response.data.status_code === 200 && response.data.image && response.data.image.url) {
+        return response.data.image.url
+    }
+    throw new Error(response.data.error?.message || '上传失败')
+}

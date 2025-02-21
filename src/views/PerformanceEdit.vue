@@ -109,10 +109,11 @@ import { useRouter, useRoute } from 'vue-router'
 import type { FileItem, FormInstance, RequestOption, UploadRequest } from '@arco-design/web-vue'
 import { Message } from '@arco-design/web-vue'
 import type { Performance, PerformanceStatus } from '@/types'
-import { createPerformance, updatePerformance, getPerformance } from '@/services/api'
+import { createPerformance, updatePerformance, getPerformance, uploadImage as toUploadImage } from '@/services/api'
 import '@wangeditor/editor/dist/css/style.css'
 // @ts-ignore
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -153,28 +154,10 @@ const editorConfig = {
                 })
 
                 try {
-                    const uploadFormData = new FormData()
-                    uploadFormData.append('action', 'upload')
-                    uploadFormData.append('source', file)
-                    uploadFormData.append('format', 'json')
-
-                    const response = await fetch('/api/upload/file/image', {
-                        method: 'POST',
-                        body: uploadFormData
-                    })
-
-                    if (!response.ok) {
-                        throw new Error('上传失败')
-                    }
-
-                    const data = await response.json()
-                    if (data.status_code === 200 && data.image && data.image.url) {
-                        loadingInstance.close()
-                        Message.success('上传成功')
-                        insertFn(data.image.url)
-                    } else {
-                        throw new Error(data.error?.message || '上传失败')
-                    }
+                    const url = await toUploadImage(file)
+                    loadingInstance.close()
+                    Message.success('上传成功')
+                    insertFn(url)
                 } catch (error) {
                     loadingInstance.close()
                     Message.error('上传失败：' + (error instanceof Error ? error.message : '未知错误'))
@@ -268,27 +251,9 @@ const uploadImage = async (fileItem: FileItem) => {
     }
 
     try {
-        const uploadFormData = new FormData()
-        uploadFormData.append('action', 'upload')
-        uploadFormData.append('source', fileItem.file)
-        uploadFormData.append('format', 'json')
-
-        const response = await fetch('/api/upload/file/image', {
-            method: 'POST',
-            body: uploadFormData
-        })
-
-        if (!response.ok) {
-            throw new Error('上传失败')
-        }
-
-        const data = await response.json()
-        if (data.status_code === 200 && data.image && data.image.url) {
-            Message.success('上传成功')
-            return data.image.url
-        } else {
-            throw new Error(data.error?.message || '上传失败')
-        }
+        const url = await toUploadImage(fileItem.file)
+        Message.success('上传成功')
+        return url
     } catch (error) {
         Message.error('上传失败：' + (error instanceof Error ? error.message : '未知错误'))
         return null
