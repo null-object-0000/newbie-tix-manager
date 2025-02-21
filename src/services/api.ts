@@ -1,7 +1,10 @@
 import type { Performance, PerformanceStatus, PerformanceSession, PerformanceTicket } from '@/types'
 import axios from 'axios'
 
-const API_BASE_URL = '/api'
+const PROD_API_BASE_URL = 'http://newbie-tix.fcv3.1494342465971857.cn-shanghai.fc.devsapp.net/api'
+const DEV_API_BASE_URL = '/api'
+
+const API_BASE_URL = import.meta.env.PROD ? PROD_API_BASE_URL : DEV_API_BASE_URL
 
 const api = axios.create({
     baseURL: API_BASE_URL
