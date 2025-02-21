@@ -43,8 +43,7 @@
                     </a-table-column>
                     <a-table-column title="总票数" :width="120">
                         <template #cell="{ record }: { record: PerformanceSession }">
-                            {{ getPerformanceTickets(record.performanceId, record.id).reduce((sum, ticket) => sum +
-            ticket.totalQuantity, 0) }}
+                            0
                         </template>
                     </a-table-column>
                     <a-table-column title="状态" data-index="status" :width="100">
@@ -101,8 +100,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Message, Modal } from '@arco-design/web-vue'
 import type { Performance, PerformanceSession, PerformanceStatus } from '@/types'
 import { PERFORMANCE_STATUS_MAP, PERFORMANCE_STATUS_OPTIONS } from '@/types/constants'
-import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession } from '@/services/api'
-import { getPerformanceTickets } from '@/services/localStorage'
+import { getPerformance, getPerformanceSessions, createSession, updateSession, deleteSession, getSessionTickets } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()

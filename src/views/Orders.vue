@@ -82,7 +82,7 @@
 import { ref, reactive, computed } from 'vue'
 import { Message, Modal, type DescData, type TableColumnData } from '@arco-design/web-vue'
 import type { Order } from '@/types'
-import { filterOrders, getPerformance, getPerformanceSession, getPerformanceTickets } from '@/services/localStorage'
+import { filterOrders, getPerformance, getPerformanceSession, getSessionTickets } from '@/services/api'
 
 // 日期格式化函数
 const formatDateTime = (dateStr: string) => {
@@ -128,22 +128,37 @@ const columns = [
 ] as TableColumnData[]
 
 // 获取演出标题
-const getPerformanceTitle = (performanceId: number) => {
-    const performance = getPerformance(performanceId)
-    return performance?.title || '-'
+const getPerformanceTitle = async (performanceId: number) => {
+    try {
+        const performance = await getPerformance(performanceId)
+        return performance?.title || '-'
+    } catch (error) {
+        console.error('Failed to get performance:', error)
+        return '-'
+    }
 }
 
 // 获取场次标题
-const getSessionTitle = (performanceId: number, sessionId: number) => {
-    const session = getPerformanceSession(performanceId, sessionId)
-    return session?.title || formatDateTime(session?.startShowTime || '')
+const getSessionTitle = async (performanceId: number, sessionId: number) => {
+    try {
+        const session = await getPerformanceSession(performanceId, sessionId)
+        return session?.title || formatDateTime(session?.startShowTime || '')
+    } catch (error) {
+        console.error('Failed to get session:', error)
+        return '-'
+    }
 }
 
 // 获取票档标题
-const getTicketTitle = (performanceId: number, sessionId: number, ticketId: number) => {
-    const tickets = getPerformanceTickets(performanceId, sessionId)
-    const ticket = tickets.find(item => item.id === ticketId)
-    return ticket?.title || '-'
+const getTicketTitle = async (performanceId: number, sessionId: number, ticketId: number) => {
+    try {
+        const tickets = await getSessionTickets(performanceId, sessionId)
+        const ticket = tickets.find(item => item.id === ticketId)
+        return ticket?.title || '-'
+    } catch (error) {
+        console.error('Failed to get ticket:', error)
+        return '-'
+    }
 }
 
 // 获取状态颜色
@@ -167,31 +182,36 @@ const getStatusText = (status: string) => {
 }
 
 // 加载数据
-const loadData = () => {
+const loadData = async () => {
     loading.value = true
     try {
-        tableData.value = filterOrders({
+        const orders = await filterOrders({
             orderNo: filterForm.orderNo,
             status: filterForm.status,
             startTime: filterForm.time?.[0],
             endTime: filterForm.time?.[1]
         })
+        tableData.value = orders
+    } catch (error) {
+        Message.error('获取订单数据失败')
+        console.error('Failed to load orders:', error)
+        tableData.value = []
     } finally {
         loading.value = false
     }
 }
 
 // 搜索
-const handleSearch = () => {
-    loadData()
+const handleSearch = async () => {
+    await loadData()
 }
 
 // 重置
-const handleReset = () => {
+const handleReset = async () => {
     filterForm.orderNo = ''
     filterForm.status = ''
     filterForm.time = []
-    loadData()
+    await loadData()
 }
 
 // 订单详情
@@ -199,13 +219,13 @@ const drawerVisible = ref(false)
 const currentOrder = ref<Order | null>(null)
 
 // 订单详情信息
-const orderInfo = computed(() => {
+const orderInfo = computed(async () => {
     if (!currentOrder.value) return []
 
     const order = currentOrder.value
-    const performance = getPerformance(order.performanceId)
-    const session = getPerformanceSession(order.performanceId, order.sessionId)
-    const tickets = getPerformanceTickets(order.performanceId, order.sessionId)
+    const performance = await getPerformance(order.performanceId)
+    const session = await getPerformanceSession(order.performanceId, order.sessionId)
+    const tickets = await getSessionTickets(order.performanceId, order.sessionId)
     const ticket = tickets.find(item => item.id === order.ticketId)
 
     return [

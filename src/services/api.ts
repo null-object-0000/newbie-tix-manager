@@ -1,8 +1,8 @@
-import type { Performance, PerformanceStatus, PerformanceSession, PerformanceTicket } from '@/types'
+import type { Performance, PerformanceStatus, PerformanceSession, PerformanceTicket, Order } from '@/types'
 import axios from 'axios'
 
-const PROD_API_BASE_URL = 'https://newbie-tix-agclrqqnvz.cn-shanghai.fcapp.run/api'
-const DEV_API_BASE_URL = '/api'
+const PROD_API_BASE_URL = 'https://newbie-tix-agclrqqnvz.cn-shanghai.fcapp.run/manager/api'
+const DEV_API_BASE_URL = '/manager/api'
 
 const API_BASE_URL = import.meta.env.PROD ? PROD_API_BASE_URL : DEV_API_BASE_URL
 
@@ -96,6 +96,29 @@ export const updateSession = async (performanceId: number, sessionId: number, se
 export const deleteSession = async (performanceId: number, sessionId: number) => {
     await api.delete(`/performances/${performanceId}/sessions/${sessionId}`)
     return true
+}
+
+/** 获取所有订单 */
+export const getOrders = async () => {
+    const response = await api.get<Order[]>('/orders')
+    return response.data
+}
+
+/** 根据条件筛选订单 */
+export const filterOrders = async (params: {
+    orderNo?: string
+    status?: string
+    startTime?: string
+    endTime?: string
+}) => {
+    const queryParams = new URLSearchParams()
+    if (params.orderNo) queryParams.append('orderNo', params.orderNo)
+    if (params.status) queryParams.append('status', params.status)
+    if (params.startTime) queryParams.append('startTime', params.startTime)
+    if (params.endTime) queryParams.append('endTime', params.endTime)
+
+    const response = await api.get<Order[]>(`/orders?${queryParams.toString()}`)
+    return response.data
 }
 
 /** 获取场次票档列表 */

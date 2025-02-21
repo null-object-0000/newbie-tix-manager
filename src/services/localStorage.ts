@@ -41,26 +41,3 @@ export const getPerformanceTickets = (performanceId: number, sessionId?: number)
     const key = `${performanceId}-${sessionId}`
     return (tickets[key] || []) as PerformanceTicket[]
 }
-
-/** 获取所有订单 */
-export const getOrders = () => {
-    const data = localStorage.getItem(ORDERS_KEY)
-    return data ? JSON.parse(data) as Order[] : []
-}
-
-/** 根据条件筛选订单 */
-export const filterOrders = (params: {
-    orderNo?: string
-    status?: string
-    startTime?: string
-    endTime?: string
-}) => {
-    const orders = getOrders()
-    return orders.filter(item => {
-        if (params.orderNo && !item.orderNo.includes(params.orderNo)) return false
-        if (params.status && item.status !== params.status) return false
-        if (params.startTime && item.createTime < params.startTime) return false
-        if (params.endTime && item.createTime > params.endTime) return false
-        return true
-    })
-}

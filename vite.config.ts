@@ -18,15 +18,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api/freeimage': {
-        target: 'https://freeimage.host',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/freeimage/, '/api')
-      },
-      '/api': {
+      '/manager/api': {
         target: 'http://localhost:9000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        rewrite: (path) => path.replace(/^\/manager\/api/, '/manager/api')
       }
     }
   }
